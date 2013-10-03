@@ -10,6 +10,7 @@ Run as SUDO or root password/
 For RPM this is done using: 
 
 root@linux# rpm -i xervmon_broker-agent-1.2.3i2-1.noarch.rpm
+
 root@linux# rpm -i xervmon_broker-agent-logwatch-1.2.3i2-1.noarch.rpm 
 
 For DEB type distros: 
