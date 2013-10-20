@@ -5,6 +5,7 @@ import os
 import platform
 import urllib2
 import urllib
+import re
 import urlparse
 import socket
 
@@ -56,9 +57,21 @@ def make_api_url(tennant, method, params):
     return url
 
 
-def make_api_call(url):
+def check_ip(ip):
+    """Check if given ip is valid"""
+    if re.match(
+            r'^(([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\.){3}([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])$',
+            ip):
+        return True
+    return False
+
+
+def make_api_call(url, api_key):
+    print url
     try:
-        res = urllib2.urlopen(url)
+        opener = urllib2.build_opener()
+        opener.addheaders = [('X-API-KEY', api_key)]
+        res = opener.open(url)
     except urllib2.HTTPError, e:
         # logger.error(str(e))
         raise
@@ -91,13 +104,13 @@ def install_package():
         print ("We are sorry. We do not support %s. Currently support is only \
             for Linux" % system)
         sys.exit()
-    dist = system.linux_distribution()[0]
+    dist = platform.linux_distribution()[0]
     package = get_package(dist)
     resp = urllib2.urlopen(package)
     with open(TMP_FILE, 'w') as fp:
-        fp.write(resp)
-    command = get_install_command(dist)
-    p1 = subprocess.Popen([command % TMP_FILE], stdout=subprocess.PIPE)
+        fp.write(resp.read())
+    command = get_install_command(dist) % TMP_FILE
+    p1 = subprocess.Popen([command], stdout=subprocess.PIPE, shell=True)
     output = p1.communicate()[0]
     print output
     return True
@@ -127,19 +140,22 @@ def main():
         key = raw_input("Enter api key\n")
     if user is None:
         user = raw_input("Enter your username\n")
-    if host is None:
-        host = raw_input("Please enter your public host\n")
+
     base_params = {'key': key, 'username': user}
     auth_url = make_api_url(tennant, 'auth', base_params)
-    print auth_url
-    auth_res = make_api_call(auth_url)
+    auth_res = make_api_call(auth_url, key)
     if auth_res is None:
         print 'Error making auth api call'
         sys.exit()
-    if auth_res['status'] == 'false':
+    if auth_res['response'] == 'false':
         print auth_res['error']
         sys.exit()
 
+    if host is None:
+        host = raw_input("Please enter your public host\n")
+        if not check_ip(host):
+            print "Please enter valid ip"
+            sys.exit()
     res_install = install_package()
     if not res_install:
         print "Couldnt install package"
@@ -148,8 +164,8 @@ def main():
     enable_params = base_params.copy()
     enable_params.update({'host': host})
     enable_url = make_api_url(tennant, 'enable', enable_params)
-    enable_res = make_api_call(enable_url)
-    if enable_res is None or enable_res['status'] == 'false':
+    enable_res = make_api_call(enable_url, key)
+    if enable_res is None or enable_res['response'] == 'false':
         print "Error enabling host"
     print "Successful install"
     sys.exit()
