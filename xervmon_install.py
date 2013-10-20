@@ -40,6 +40,25 @@ RPM_PACKAGE = 'https://github.com/sseshachala/xervmonbroker_agents/raw/master/di
 AGENT_CONFIG = '/etc/xinetd.d/xervmon_broker'
 
 
+CONFIG = '''
+# Copyright Xervmon inc.
+
+service xervmon_broker
+{
+        type           = UNLISTED
+        port           = 6556
+        socket_type    = stream
+        protocol       = tcp
+        wait           = no
+        user           = root
+        server         = /usr/bin/xervmon_broker_agent
+
+        only_from      = %(broker_ip)s
+
+        disable        = no
+}
+'''
+
 def get_interface_ip(ifname):
     import fcntl
     import struct
@@ -80,7 +99,6 @@ def check_ip(ip):
 
 
 def make_api_call(url, api_key):
-    print url
     try:
         opener = urllib2.build_opener()
         opener.addheaders = [('X-API-KEY', api_key)]
@@ -121,13 +139,8 @@ def get_install_command(dist):
 
 def configure(broker_ip, dist):
     added = False
-    for line in fileinput.input(AGENT_CONFIG, inplace=1):
-        if 'only_from' in line:
-            if not added:
-                print ('\tonly_from = %s\n' % broker_ip),
-                added = True
-        else:
-            print line,
+    with open(AGENT_CONFIG, 'w') as fp:
+        fp.write(CONFIG % dict(broker_ip=broker_ip))
     if dist not in DEBIAN_LIKE_SYSTEMS:
         subprocess.call('chkconfig xinetd on')
 
