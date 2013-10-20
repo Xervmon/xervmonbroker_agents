@@ -236,7 +236,7 @@ def main():
     enable_res = make_api_call(enable_url, key)
     if enable_res is None or enable_res['response'] == 'false':
         print "Error enabling host"
-    print "Successful install"
+    print "*** XervmonBroker Agent Successfully installed!"
     sys.exit()
 
 
