@@ -101,7 +101,7 @@ def get_install_command(dist):
 def install_package():
     system = platform.system()
     if system != 'Linux':
-        print ("We are sorry. We do not support %s. Currently support is only \
+        print ("We are sorry. We do not support %s. Currently support only \
             for Linux" % system)
         sys.exit()
     dist = platform.linux_distribution()[0]
@@ -167,7 +167,7 @@ def main():
     enable_res = make_api_call(enable_url, key)
     if enable_res is None or enable_res['response'] == 'false':
         print "Error enabling host"
-    print "Successful install"
+    print "*** XervmonBroker Agent Successfully installed!"
     sys.exit()
 
 
