@@ -16,7 +16,7 @@ import logging
 
 from optparse import OptionParser, make_option
 
-DEFAULT_tenant = 'devmaas'
+DEFAULT_TENANT = 'devmaas'
 DEBIAN_LIKE_SYSTEMS = ["Debian", "Mint", "Ubuntu"]
 DEFAULT_INTERFACE = 'eth0'
 TMP_FILE = '/tmp/tesspackage'
@@ -177,16 +177,19 @@ def main():
     usage = "usage: %prog [options]"
     option_list = [
             make_option("-k", "--key", action="store", type="string",
-                dest="key"),
+                dest="key", help="api key. If you do not have it please contact\
+                our support on website"),
             make_option("-u", "--user", action="store", type="string",
-                dest="user"),
+                dest="user", help="your user"),
             make_option("-H", "--host", action="store", type="string",
-                dest="host"),
+                dest="host", help="host of the server. Please use -i if you\
+                want to detect interface ip"),
             make_option("-i", "--interface", action="store", type="string",
                 dest="interface", help="default interface to detect ip if no \
                 host given", default=DEFAULT_INTERFACE),
             make_option("-t", "--tenant", action="store", type="string",
-                dest="tenant", default=DEFAULT_tenant),
+                dest="tenant", default=DEFAULT_TENANT,
+                help="tenant to our api service. You can check it in your dashboard"),
             ]
     parser = OptionParser(usage, option_list=option_list)
     (options, args) = parser.parse_args()
