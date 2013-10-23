@@ -16,13 +16,14 @@ import logging
 
 from optparse import OptionParser, make_option
 
-DEFAULT_TENANT = 'devmaas'
+DEFAULT_TENANT = 'app'
 DEBIAN_LIKE_SYSTEMS = ["Debian", "Mint", "Ubuntu"]
 DEFAULT_INTERFACE = 'eth0'
-TMP_FILE = '/tmp/tesspackage'
+TMP_FILE = '/tmp/testpackage'
 URL_SCHEME = 'http'
 URL_DOMAIN = 'xervmon.com'
-URL_API_PATH = '/sudhi/operation-kriya/index.php/api/SystemMonitor/'
+
+URL_API_PATH = '<customer_identifier>/api/SystemMonitor/'
 URL_GET_PARAMS = {
         'key': 'X-API-KEY',
         'username': 'username',
