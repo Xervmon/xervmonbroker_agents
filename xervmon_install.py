@@ -68,6 +68,10 @@ def get_interface_ip(ifname):
                             ifname[:15]))[20:24])
 
 
+def get_hostname():
+    return socket.gethostname()
+
+
 def make_api_url(tenant, method, params):
     netloc = '%s.%s' % (tenant, URL_DOMAIN)
     url_method = URL_METHODS.get(method)
@@ -245,7 +249,10 @@ def main():
         sys.exit()
 
     enable_params = base_params.copy()
-    enable_params.update({'host': host})
+    enable_params.update({
+        'host': host,
+        'host_name': get_hostname()
+        })
     enable_url = make_api_url(tenant, 'enable', enable_params)
     enable_res = make_api_call(enable_url, key)
     if enable_res is None or enable_res['response'] == 'false':
