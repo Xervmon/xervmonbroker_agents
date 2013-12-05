@@ -73,7 +73,7 @@ def get_hostname():
 
 
 def make_api_url(tenant, method, params):
-    netloc = '%s.%s' % (tenant, URL_DOMAIN)
+    netloc = '%s.%s' % (tenant, URL_DOMAIN) if tenant else URL_DOMAIN
     url_method = URL_METHODS.get(method)
     if url_method is None:
         # logger.error("No such method %s" % method)
