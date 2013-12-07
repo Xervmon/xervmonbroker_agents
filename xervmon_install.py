@@ -247,7 +247,7 @@ def main():
     if auth_res is None:
         print 'Error making auth api call'
         sys.exit()
-    if auth_res['status'] == 'false':
+    if auth_res['status'] == 'error':
         print auth_res['error']
         sys.exit()
     broker_ip = auth_res['broker_ip']
@@ -261,7 +261,7 @@ def main():
     enable_params = base_params.copy()
     enable_params.update({'host': host, 'hostname': 'Curtest'})
     enable_res = make_api_call(tenant, 'enable', enable_params, "POST")
-    if enable_res is None or enable_res['status'] == 'false':
+    if enable_res is None or enable_res['status'] == 'error':
         print "Error enabling host"
     print "*** XervmonBroker Agent Successfully installed!"
     sys.exit()
