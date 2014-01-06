@@ -138,9 +138,9 @@ def get_package(dist):
 
 def get_package_install_command(dist):
     if dist in DEBIAN_LIKE_SYSTEMS:
-        command = "apt-get install %s"
+        command = "apt-get -q -y install %s"
     else:
-        command = "yum install %s"
+        command = "yum install -y %s"
     return command
 
 
