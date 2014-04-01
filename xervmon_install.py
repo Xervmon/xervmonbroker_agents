@@ -35,8 +35,8 @@ URL_METHODS = {
         'enable': 'EnableHost'
         }
 
-DEB_PACKAGE = 'https://github.com/sseshachala/xervmonbroker_agents/raw/master/distros/v1.0/xervmon-broker-agent_1.2.3i2-2_all.deb'
-RPM_PACKAGE = 'https://github.com/sseshachala/xervmonbroker_agents/raw/master/distros/v1.0/xervmon_broker-agent-1.2.3i2-1.noarch.rpm'
+DEB_PACKAGE = 'https://github.com/sseshachala/xervmonbroker_agents/raw/master/distros/v5.6/xervmon-broker-agent_1.2.3i2-2_all.deb'
+RPM_PACKAGE = 'https://github.com/sseshachala/xervmonbroker_agents/raw/master/distros/v5.6/xervmon_broker-agent-1.2.3i2-1.noarch.rpm'
 
 AGENT_CONFIG = '/etc/xinetd.d/xervmon_broker'
 
