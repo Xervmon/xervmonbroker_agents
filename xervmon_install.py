@@ -16,26 +16,27 @@ import logging
 
 from optparse import OptionParser, make_option
 
-DEFAULT_TENANT = 'devmaas'
+DEFAULT_TENANT = 'app'
 DEBIAN_LIKE_SYSTEMS = ["Debian", "Mint", "Ubuntu"]
 DEFAULT_INTERFACE = 'eth0'
 TMP_FILE = '/tmp/tesspackage'
 URL_SCHEME = 'http'
-URL_DOMAIN = 'xervmon.com'
-URL_API_PATH = '/sudhi/operation-kriya/index.php/api/SystemMonitor/'
+URL_DOMAIN = 'xervmon.com/index.php'
+URL_API_PATH = 'api/SystemMonitor'
 URL_GET_PARAMS = {
         'key': 'X-API-KEY',
         'username': 'username',
         'host': 'host',
+        'hostname': 'host_name'
         }
 
 URL_METHODS = {
-        'auth': 'Authenticate',
+        'auth': 'authenticate',
         'enable': 'EnableHost'
         }
 
-DEB_PACKAGE = 'https://github.com/sseshachala/xervmonbroker_agents/raw/master/distros/xervmon-broker-agent_1.2.3i2-2_all.deb'
-RPM_PACKAGE = 'https://github.com/sseshachala/xervmonbroker_agents/raw/master/distros/xervmon_broker-agent-1.2.3i2-1.noarch.rpm'
+DEB_PACKAGE = 'https://github.com/sseshachala/xervmonbroker_agents/raw/master/distros/v5.6/xervmon-broker-agent_1.2.3i2-2_all.deb'
+RPM_PACKAGE = 'https://github.com/sseshachala/xervmonbroker_agents/raw/master/distros/v5.6/xervmon_broker-agent-1.2.3i2-1.noarch.rpm'
 
 AGENT_CONFIG = '/etc/xinetd.d/xervmon_broker'
 
@@ -66,21 +67,26 @@ def get_interface_ip(ifname):
     return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s',
                             ifname[:15]))[20:24])
 
-
-def make_api_url(tenant, method, params):
-    netloc = '%s.%s' % (tenant, URL_DOMAIN)
-    url_method = URL_METHODS.get(method)
-    if url_method is None:
-        # logger.error("No such method %s" % method)
-        return
-    url_path = urlparse.urljoin(URL_API_PATH, url_method)
+def translate_params(params):
     params_url = {}
+    if not isinstance(params, dict):
+        return params_url
     for param_name, param_value in params.items():
         param = URL_GET_PARAMS.get(param_name)
         if param is None:
             # logger.error("No such param %s" % param_name)
-            return
+            continue
         params_url[param] = param_value
+    return params_url
+
+def make_api_url(tenant, method, params=None):
+    netloc = '%s.%s' % (tenant, URL_DOMAIN) if tenant else URL_DOMAIN
+    url_method = URL_METHODS.get(method)
+    if url_method is None:
+        return
+    #url_path = urllib.basejoin(URL_API_PATH, url_method)
+    url_path = URL_API_PATH + '/' + url_method
+    params_url = translate_params(params)
     enc_params = urllib.urlencode(params_url)
     params = ''
     fragment = ''
@@ -98,17 +104,26 @@ def check_ip(ip):
     return False
 
 
-def make_api_call(url, api_key):
+def make_api_call(tenant, api_method, params, method="GET"):
+    api_key = params['key']
+    import base64
+    base64string = base64.encodestring('%s:%s' % ('omdadmin', 'omd')).replace('\n', '')
+    headers = [('X-API-KEY', api_key), ("Authorization", "Basic %s" % base64string)]
+    data = None
+    if method == "POST":
+        headers += [('Content-Type', 'application/json')]
+        new_params = translate_params(params)
+        #data = json.dumps(new_params)
+        #params = None
+    url = make_api_url(tenant, api_method, params)
     try:
-        opener = urllib2.build_opener()
-        opener.addheaders = [('X-API-KEY', api_key)]
-        res = opener.open(url)
-    except urllib2.HTTPError, e:
-        # logger.error(str(e))
-        print 'Couldnt authenticate. Please try another api key or contact our support'
+        req = urllib2.Request(url, data, dict(headers))
+        response = urllib2.urlopen(req)
+    except urllib2.HTTPError as e:
+        print 'Couldnt make an api call: %s. Please try another api key or contact our support' % e.read()
         return
     try:
-        return json.loads(res.read())
+        return json.loads(response.read())
     except StandardError:
         return
 
@@ -123,9 +138,9 @@ def get_package(dist):
 
 def get_package_install_command(dist):
     if dist in DEBIAN_LIKE_SYSTEMS:
-        command = "apt-get install %s"
+        command = "apt-get -q -y install %s"
     else:
-        command = "yum install %s"
+        command = "yum install -y %s"
     return command
 
 
@@ -174,7 +189,6 @@ def get_from_input(msg):
 
 def main():
     """Main control function"""
-
     system = platform.system()
     dist = platform.linux_distribution()[0]
     if system != 'Linux':
@@ -227,14 +241,13 @@ def main():
         user = get_from_input("Enter your username")
 
     base_params = {'key': key, 'username': user}
-    auth_url = make_api_url(tenant, 'auth', base_params)
-    auth_res = make_api_call(auth_url, key)
+    auth_res = make_api_call(tenant, 'auth', base_params)
     if auth_res is None:
         print 'Error making auth api call'
         sys.exit()
-    if auth_res['response'] == 'false':
+    '''if auth_res['status'] == 'error':
         print auth_res['error']
-        sys.exit()
+        sys.exit()'''
     broker_ip = auth_res['broker_ip']
 
     res_install = install(dist)
@@ -244,13 +257,15 @@ def main():
         sys.exit()
 
     enable_params = base_params.copy()
-    enable_params.update({'host': host})
-    enable_url = make_api_url(tenant, 'enable', enable_params)
-    enable_res = make_api_call(enable_url, key)
-    if enable_res is None or enable_res['response'] == 'false':
+    enable_params.update({'host': host, 'hostname': socket.gethostname()})
+    enable_res = make_api_call(tenant, 'enable', enable_params, "POST")
+    print enable_res
+    if enable_res is None or enable_res['response'] != 'success':
         print "Error enabling host"
+        sys.exit()
     print "*** XervmonBroker Agent Successfully installed!"
     sys.exit()
+
 
 
 if __name__ == '__main__':

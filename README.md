@@ -1,30 +1,22 @@
-xervmonbroker_agents
-====================
+xervmonbroker_agents:
+=====================
 
-Downloable agents for Customers.
+Downloable agents for Customers using RPM / DEB packages
 
-Using the RPM / DEB packages
-Installing the Agent via RPM or DEB is very easy. All you have to do is to make sure xinetd is installed first and then install the package. Usually, you'll also want to install the logwatch extension. 
+Make sure the user has sudo privillege.
 
-Run as SUDO or root password/
-For RPM this is done using: 
+Pre-requisities:
+===============
+1. Git
+2. Python 2.7+
 
-root@linux# rpm -i xervmon_broker-agent-1.2.3i2-1.noarch.rpm
+Steps for Installing the agent Manually:
+========================================
+1. user@linux# git clone https://github.com/sseshachala/xervmonbroker_agents.git
+ 
+2. user@linux# cd xervmonbroker_agents
 
-root@linux# rpm -i xervmon_broker-agent-logwatch-1.2.3i2-1.noarch.rpm 
+3. user@linux# sudo python xervmon_install.py --key=api_key --user=username --tenant=tenant_name
 
-For DEB type distros: 
+Replace api_key with the xervmon api_key, username with xervmon user/login name and tenant_name with the tenant name.
 
-root@linux# dpkg -i xervmon-broker-agent_1.2.3i2-2_all.deb
-
-root@linux# dpkg -i xervmon-broker-agent-logwatch_1.2.3i2-2_all.deb 
-
-
-Installing the agent Manually
-
-The xervmon_broker agent for Linux consists of only two files: a shell skript called xervmon_broker_agent.linux and a configuration file for xinetd.conf, both of which can be found in the subdirectory agents. xinetd is an improved version of the classical inetd and a is available or even standard on most current linux distributions. 
-Alternatively you can use the classical inetd, but this documentation focusses on xinetd. 
-Please install the file xervmon_broker_agent.linux on your target host as /usr/bin/xervmon_broker_agent (drop the .linux). You should be able to execute the agent simply by calling it from the command line. It can be run as non-root user, but some diagnostic information can only be retrieved if it is run as root. The output of xervmon_broker_agent looks like this (abbreviated): 
-
-
-The agent is a binary Hence you need to run the xinetd to have it run all the time.
